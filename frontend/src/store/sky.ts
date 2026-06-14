@@ -3,6 +3,28 @@ import { defineStore } from 'pinia'
 import { STARS, CONSTELLATIONS } from '../data/stars'
 import type { Star } from '../types'
 
+export interface LocationPreset {
+  name: string
+  nameCn: string
+  latitude: number
+  longitude: number
+}
+
+const LOCATION_PRESETS: LocationPreset[] = [
+  { name: 'Beijing', nameCn: '北京', latitude: 39.9, longitude: 116.4 },
+  { name: 'Shanghai', nameCn: '上海', latitude: 31.2, longitude: 121.5 },
+  { name: 'Guangzhou', nameCn: '广州', latitude: 23.1, longitude: 113.3 },
+  { name: 'Chengdu', nameCn: '成都', latitude: 30.7, longitude: 104.1 },
+  { name: 'Xi\'an', nameCn: '西安', latitude: 34.3, longitude: 108.9 },
+  { name: 'Harbin', nameCn: '哈尔滨', latitude: 45.8, longitude: 126.5 },
+  { name: 'Kunming', nameCn: '昆明', latitude: 25.0, longitude: 102.7 },
+  { name: 'Urumqi', nameCn: '乌鲁木齐', latitude: 43.8, longitude: 87.6 },
+  { name: 'Tokyo', nameCn: '东京', latitude: 35.7, longitude: 139.7 },
+  { name: 'New York', nameCn: '纽约', latitude: 40.7, longitude: -74.0 },
+  { name: 'London', nameCn: '伦敦', latitude: 51.5, longitude: -0.1 },
+  { name: 'Sydney', nameCn: '悉尼', latitude: -33.9, longitude: 151.2 },
+]
+
 export const useSkyStore = defineStore('sky', () => {
   const viewDate = ref(new Date())
   const zoom = ref(1.0)
@@ -14,6 +36,7 @@ export const useSkyStore = defineStore('sky', () => {
   const selectedStar = ref<Star | null>(null)
   const searchQuery = ref('')
   const latitude = ref(39.9) // Beijing default
+  const currentLocation = ref<LocationPreset>(LOCATION_PRESETS[0])
 
   const localSiderealTime = computed(() => {
     const d = viewDate.value
@@ -69,10 +92,32 @@ export const useSkyStore = defineStore('sky', () => {
     selectedStar.value = closest
   }
 
+  function setLocation(preset: LocationPreset) {
+    currentLocation.value = preset
+    latitude.value = preset.latitude
+  }
+
+  function setCustomLatitude(lat: number) {
+    latitude.value = lat
+    const matched = LOCATION_PRESETS.find(p => Math.abs(p.latitude - lat) < 0.05)
+    if (matched) {
+      currentLocation.value = matched
+    } else {
+      currentLocation.value = {
+        name: 'Custom',
+        nameCn: '自定义',
+        latitude: lat,
+        longitude: 0
+      }
+    }
+  }
+
   return {
     viewDate, zoom, panX, panY, showLabels, showConstLines, showGrid,
-    selectedStar, searchQuery, latitude, localSiderealTime, filteredStars,
+    selectedStar, searchQuery, latitude, currentLocation,
+    localSiderealTime, filteredStars,
     projectStar, starRadius, spectralColor, selectStar,
-    STARS, CONSTELLATIONS
+    setLocation, setCustomLatitude,
+    LOCATION_PRESETS, STARS, CONSTELLATIONS
   }
 })

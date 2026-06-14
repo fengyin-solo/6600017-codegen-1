@@ -24,9 +24,33 @@
       </div>
 
       <!-- Location -->
-      <div>
-        <label class="text-gray-400 text-xs">纬度: {{ store.latitude.toFixed(1) }}°</label>
-        <input type="range" v-model.number="store.latitude" min="-90" max="90" step="0.1" class="w-full" />
+      <div class="space-y-2">
+        <div>
+          <label class="text-gray-400 text-xs">当前观测地: {{ store.currentLocation.nameCn }} ({{ store.currentLocation.name }})</label>
+        </div>
+        <div>
+          <label class="text-gray-400 text-xs">纬度: {{ store.latitude.toFixed(1) }}°</label>
+          <input type="range" :value="store.latitude" @input="onLatitudeChange" min="-90" max="90" step="0.1" class="w-full" />
+        </div>
+        <div>
+          <label class="text-gray-400 text-xs">城市预设</label>
+          <div class="grid grid-cols-3 gap-1 mt-1">
+            <button
+              v-for="loc in store.LOCATION_PRESETS"
+              :key="loc.name"
+              @click="store.setLocation(loc)"
+              :class="[
+                'text-xs px-2 py-1.5 rounded transition-colors',
+                store.currentLocation.name === loc.name
+                  ? 'bg-blue-600 text-white font-medium'
+                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+              ]"
+              :title="`${loc.nameCn} (${loc.name}) 纬度: ${loc.latitude}°`"
+            >
+              {{ loc.nameCn }}
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Zoom -->
@@ -87,4 +111,8 @@ import StarCanvas from './components/StarCanvas.vue'
 const store = useSkyStore()
 const dateStr = ref(new Date().toISOString().slice(0, 16))
 function updateDate() { store.viewDate = new Date(dateStr.value) }
+function onLatitudeChange(e: Event) {
+  const val = parseFloat((e.target as HTMLInputElement).value)
+  store.setCustomLatitude(val)
+}
 </script>
